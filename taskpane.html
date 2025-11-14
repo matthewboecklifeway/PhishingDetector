@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lifeway Phishing Detector</title>
+
+    <!-- Office JavaScript API -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+
+    <style>
+        :root {
+            --lifeway-yellow: #fdb528;
+            --lifeway-gray: #414042;
+            --pacific: #136172;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #ef4444;
+            --background: #f8f9fa;
+            --border: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: var(--background);
+            color: #1f2937;
+            padding: 16px;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .header {
+            background: var(--lifeway-gray);
+            color: white;
+            padding: 16px;
+            margin: -16px -16px 16px -16px;
+            text-align: center;
+            border-bottom: 4px solid var(--lifeway-yellow);
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .model-toggle {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #6b7280;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--lifeway-yellow);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        .analyze-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--lifeway-yellow);
+            color: var(--lifeway-gray);
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .analyze-btn:hover:not(:disabled) {
+            background: #e5a320;
+            transform: translateY(-1px);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 32px 16px;
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 12px;
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--lifeway-yellow);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .score-card {
+            background: linear-gradient(135deg, var(--lifeway-gray) 0%, #2a2a2c 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            color: white;
+            text-align: center;
+        }
+
+        .score-value {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .score-label {
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .score-meter {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+
+        .score-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--warning), var(--danger));
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        .info-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--lifeway-yellow);
+        }
+
+        .info-card h3 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--lifeway-gray);
+        }
+
+        .info-card p {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .info-card p:last-child {
+            margin-bottom: 0;
+        }
+
+        .red-flags {
+            list-style: none;
+            padding: 0;
+        }
+
+        .red-flags li {
+            padding: 8px 12px;
+            background: #fef2f2;
+            border-left: 3px solid var(--danger);
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .red-flags li:last-child {
+            margin-bottom: 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #fca5a5;
+            font-size: 13px;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .link-preview {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            background: var(--background);
+            padding: 8px;
+            border-radius: 4px;
+            word-break: break-all;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>🛡️ Phishing Detector</h1>
+        <p>AI-powered email security</p>
+    </div>
+
+    <div class="model-toggle">
+        <span style="font-weight: 600;">Analysis Model:</span>
+        <div class="toggle-wrapper">
+            <span style="font-size: 11px;">Local</span>
+            <div class="toggle-switch">
+                <input type="checkbox" id="modelToggle">
+                <span class="slider"></span>
+            </div>
+            <span style="font-size: 11px;">Claude</span>
+        </div>
+    </div>
+
+    <button class="analyze-btn" id="analyzeBtn">
+        <span>🔍</span>
+        <span>Analyze This Email</span>
+    </button>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Analyzing email for threats...</p>
+    </div>
+
+    <div class="error" id="error"></div>
+
+    <div class="results" id="results">
+        <div class="score-card">
+            <div class="score-value" id="scoreValue">0%</div>
+            <div class="score-meter">
+                <div class="score-bar" id="scoreBar"></div>
+            </div>
+            <div class="score-label" id="scoreLabel">Analyzing...</div>
+        </div>
+
+        <div class="info-card">
+            <h3>📊 AI Analysis</h3>
+            <div id="analysisText"></div>
+        </div>
+
+        <div class="info-card">
+            <h3>🚩 Key Red Flags</h3>
+            <ul class="red-flags" id="redFlags"></ul>
+        </div>
+
+        <div class="info-card">
+            <h3>📧 Email Details</h3>
+            <div id="emailDetails"></div>
+        </div>
+    </div>
+
+    <script src="taskpane.js"></script>
+</body>
+</html>
