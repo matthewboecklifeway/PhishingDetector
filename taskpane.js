@@ -1,5 +1,5 @@
 // Configuration
-const API_BASE_URL = 'http://localhost:5000'; // Change this to your Flask API URL
+const API_BASE_URL = 'https://bona-ulrike-uncoincided.ngrok-free.dev'; // Change this to your Flask API URL
 
 // Initialize Office Add-in
 Office.onReady((info) => {
