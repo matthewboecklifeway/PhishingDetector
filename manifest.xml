@@ -17,9 +17,9 @@
   <HighResolutionIconUrl DefaultValue="https://matthewboecklifeway.github.io/PhishingDetector/assets/icon-64.png"/>
   <SupportUrl DefaultValue="https://matthewboecklifeway.github.io/PhishingDetector/support"/>
   
-  <!-- App Domains - Add your Flask API domain here -->
+  <!-- App Domains - Hosts the add-in is permitted to communicate with -->
   <AppDomains>
-    <AppDomain>https://your-flask-api-domain.com</AppDomain>
+    <AppDomain>https://bona-ulrike-uncoincided.ngrok-free.dev</AppDomain>
   </AppDomains>
 
   <Hosts>
